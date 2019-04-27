@@ -4,13 +4,15 @@
 
 `npm -i`
 
-### minimal config.json content
+### setup config
+
+minimal `config.json` content:
 
 ```  
 {  
     "x_key": "<some_secret_header>",
     "fb_token":"EAAgcpoks048BAB.................",
-    "project_id": "reminder-2dcf5",
+    "project_id": "rem.....",
     "private_key": "-----BEGIN PRIVATE KEY-----\nMI..................",
     "client_email": "email............",
 }
