@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var config = require('./../config.json');
-const dialogflow = require('dialogflow');
+//const dialogflow = require('dialogflow');
 const {
   dialogflow,
   BasicCard,
