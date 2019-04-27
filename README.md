@@ -2,7 +2,7 @@
 
 ### install
 
-`npm -i`1
+`npm -i`
 
 ### minimal config.json content
 
@@ -14,6 +14,7 @@
     "private_key": "-----BEGIN PRIVATE KEY-----\nMI..................",
     "client_email": "email............",
 }
+```
 
 ### run
 
