@@ -4,22 +4,30 @@
  * Module dependencies.
  */
 
+const https = require('https');
+const fs = require('fs');
+
+// readFileSync function must use __dirname get current directory
+// require use ./ refer to current directory.
+
 var app = require('../app');
 var debug = require('debug')('myapp:server');
 var http = require('http');
-
-/**
- * Get port from environment and store in Express.
- */
+var server;
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app);
+try {
+  var options = {
+    key: fs.readFileSync('/home/ubuntu/ssl/privatekey.pem'),
+    cert: fs.readFileSync('/home/ubuntu/ssl/certificate.pem'),
+  };
+  server = https.createServer(options, app);
+} catch (e) {
+  console.log('error',e)
+  server = http.createServer(app);
+}
 
 /**
  * Listen on provided port, on all network interfaces.
