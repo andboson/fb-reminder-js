@@ -19,16 +19,22 @@ let Client = {
     intentMap.set('Default Welcome Intent', welcome);
     intentMap.set('Default Fallback Intent', fallback);
     intentMap.set('remind', remind);
+    intentMap.set('menu', this.showMenu);
+
+    agent.fb = options.request.fb;
     agent.handleRequest(intentMap);
 
     return agent;
+  },
+  showMenu: function (agent) {
+    console.log('===', agent.originalRequest.payload.data.sender.id);
+    agent.fb.ShowMenu(agent.originalRequest.payload.data.sender);
   }
 }
 
 exports.Client = exports.default = Client
 
 const { FBClient } = require('./../facebook/fb_client');
-
 
 function welcome(agent) {
   agent.add(`Welcome to Express.JS webhook!`);

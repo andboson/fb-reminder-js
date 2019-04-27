@@ -3,10 +3,8 @@ var router = express.Router();
 const  { Client } = require('../dialogflow/client')
 
 router.post('/', function (req, res, next) {
-  //console.log(req);
-
   const agent = Client.New({ request: req, response: res });
-  console.info(`agent set`, agent);
+  
 });
 
 module.exports = router;

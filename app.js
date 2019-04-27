@@ -4,6 +4,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var helmet = require('helmet');
 var config = require('./config.json');
+const { FBClient } = require('./facebook/fb_client');
 
 var webhookRouter = require('./routes/webhook');
 
@@ -16,11 +17,17 @@ app.use(cookieParser());
 
 app.disable('x-powered-by');
 
+//set menu
+let fb = FBClient.New();
+fb.SetChatProfile();
+
 var checkKey = function (req, res, next) {
     req.requestTime = Date.now();
     if (  req.header('X-Key') !== config.x_key ){
-       return;
+      // return;
     }
+
+    req.fb = fb;
     next();
   };
   

@@ -1,4 +1,4 @@
-# fb reminder expressjs app
+# fb reminder express.js app
 
 ### install
 
@@ -26,3 +26,5 @@ You can obtain these files with letsencrypt certbot.
 `npm start`
 
 App will start on `3000` port by default
+
+All requests must be signed with `X-Key` header (value of `x_key` config field)
