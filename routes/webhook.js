@@ -36,24 +36,10 @@ router.post('/', function (req, res, next) {
   console.info(`agent set`);
 
   let intentMap = new Map();
-  //intentMap.set('Default Welcome Intent', welcome);
-  //intentMap.set('Default Fallback Intent', fallback);
+  intentMap.set('Default Welcome Intent', welcome);
+  intentMap.set('Default Fallback Intent', fallback);
 // intentMap.set('<INTENT_NAME_HERE>', yourFunctionHandler);
   agent.handleRequest(intentMap);
-  agent.conv.ask(new Suggestions('Alert me of new tips'));
-
-  
-
-  agent.app.intent('Default Welcome Intent', (conv) => {
-    const welcomeMessage = `Hi! Welcome to Actions on Google Tips! ` +
-        `I can offer you tips for Actions on Google. You can choose to ` +
-        `hear the most recently added tip, or you can pick a category ` +
-        `from ${uniqueCategories.join(', ')}, or I can tell you a tip ` +
-        `from a randomly selected category.`;
-
-   res.json(conv.ask(welcomeMessage).json());
-   // conv.ask(new Suggestions('Alert me of new tips'));
-  });
 
 });
 
