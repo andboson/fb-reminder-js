@@ -20,8 +20,8 @@ app.set('port', port);
 
 try {
   var options = {
-    key: fs.readFileSync('/home/ubuntu/ssl/privatekey.pem'),
-    cert: fs.readFileSync('/home/ubuntu/ssl/certificate.pem'),
+    key: fs.readFileSync('/home/ubuntu/ssl/priv.pem'),
+    cert: fs.readFileSync('/home/ubuntu/ssl/cert.pem'),
   };
   server = https.createServer(options, app);
 } catch (e) {
