@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "actions-on-google": "^2.6.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "dialogflow": "^0.8.2",
