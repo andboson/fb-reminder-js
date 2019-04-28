@@ -4,12 +4,19 @@
 
 `npm -i`
 
+import `reminder.zip` in dialog flow and setup fulfillemnt
+
 ### setup config
 
 minimal `config.json` content:
 
 ```  
 {  
+    "snooze_period": "5m",
+    "pg_user": "********",
+    "pg_passwd": "******",
+    "pg_db": "***888***",
+    "pg_address": "host:port",
     "x_key": "<some_secret_header>",
     "fb_token":"EAAgcpoks048BAB.................",
     "project_id": "rem.....",

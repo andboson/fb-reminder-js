@@ -5,41 +5,93 @@ let fbToken = function () {
     return config.fb_token
 }
 
+
+const menuActions = [
+    {
+        type: 'postback',
+        title: 'Create reminder',
+        payload: 'reminder_create',
+    },
+    {
+        type: 'postback',
+        title: 'Reminders for today',
+        payload: 'show_today',
+    },
+    {
+        type: 'postback',
+        title: 'Delete all reminders',
+        payload: 'delete_all',
+    },
+];
+
 let FBClient = {
     client: {},
-    New: function(){
+    New: function () {
         this.client = MessengerClient.connect(fbToken());
 
         return this;
     },
-    ReminderAlert: function (uid, reminder) {
-        let payload = {
-            alert: reminder,
-            type: 'confirm'
-        }
-        let payloadSnooze = {
-            alert: reminder,
-            type: 'snooze'
-        }
-        
+    ReminderCreateConfirm: function (uid, reminder) {
         let resp = this.client.sendGenericTemplate(
             uid,
             [
                 {
-                    title: reminder.title,
-                    subtitle: 'You have an alert for your reminder!',
+                    title: 'Confirm save reminder',
+                    subtitle: `Time: ${new Date(reminder.time).toLocaleString()} \n Text: ${reminder.text}`,
                     buttons: [
                         {
                             type: 'postback',
-                            title: 'confirm',
-                            payload: JSON.stringify(payload),
+                            title: 'save',
+                            payload: JSON.stringify({
+                                alert: reminder,
+                                type: 'save'
+                            }),
                         },
                         {
                             type: 'postback',
-                            title: 'snooze',
-                            payload: JSON.stringify(payloadSnooze),
+                            title: 'cancel',
+                            payload: 'cancel',
                         },
                     ]
+                }
+            ],
+            {
+                //  tag: 'CONFIRMED_EVENT_REMINDER'
+            });
+
+        return resp;
+    },
+    ReminderAlert: function (uid, reminder) {
+        let btns = [
+            {
+                type: 'postback',
+                title: 'confirm',
+                payload: JSON.stringify({
+                    alert: reminder,
+                    type: 'confirm'
+                }),
+            },
+        ]
+
+        // add snooze btn only if reminder is not snoozed
+        if (!reminder.snoozed) {
+            buttons.push({
+                type: 'postback',
+                title: 'snooze',
+                payload: JSON.stringify({
+                    alert: reminder,
+                    type: 'snooze'
+                }),
+            });
+        }
+
+        let resp = this.client.sendGenericTemplate(
+            uid,
+            [
+                {
+                    title: reminder.text,
+                    subtitle: 'You have an alert for your reminder!',
+                    buttons: btns,
                 }
             ],
             {
@@ -48,73 +100,67 @@ let FBClient = {
 
         return resp;
     },
-    SetChatProfile: function(){
+    SetChatProfile: function () {
         this.client.setMessengerProfile({
             get_started: {
-              payload: 'show_menu',
+                payload: 'show_menu',
             },
-            "greeting":[
+            "greeting": [
                 {
-                  "locale":"default",
-                  "text":"Welcome to Reminder, {{user_full_name}}!"
-                }, 
+                    "locale": "default",
+                    "text": "Welcome to Reminder, {{user_full_name}}!"
+                },
                 {
-                  "locale":"en_US",
-                  "text":"Hello {{user_full_name}}!. I will try to help you!"
+                    "locale": "en_US",
+                    "text": "Hello {{user_full_name}}!. I will try to help you!"
                 }
-              ],
-            persistent_menu: [
-              {
-                locale: 'default',
-                composer_input_disabled: false,
-                call_to_actions: [
-                    {
-                        type: 'postback',
-                        title: 'Show all reminders',
-                        payload: 'show_all',
-                    },
-                    {
-                        type: 'postback',
-                        title: 'Show reminders for today',
-                        payload: 'show_today',
-                    },
-                    {
-                        type: 'postback',
-                        title: 'Delete all reminders',
-                        payload: 'delete_all',
-                    },
-                ],
-              },
             ],
-          });
+            persistent_menu: [
+                {
+                    locale: 'default',
+                    composer_input_disabled: false,
+                    call_to_actions: menuActions
+                },
+            ],
+        });
     },
-    ShowMenu: function (uid) {         
+    ShowMenu: function (uid) {
         let resp = this.client.sendGenericTemplate(
             uid,
             [
                 {
-                    title: 'Reminder menu',
-                    subtitle: 'sort of action with you reminders',
-                    buttons: [
-                        {
-                            type: 'postback',
-                            title: 'Show all',
-                            payload: 'show_all',
-                        },
-                        {
-                            type: 'postback',
-                            title: 'Show for today',
-                            payload: 'show_today',
-                        },
-                        {
-                            type: 'postback',
-                            title: 'Delete all',
-                            payload: 'delete_all',
-                        },
-                    ]
+                    title: '  Reminder menu',
+                    // subtitle: 'sort of action with you reminders',
+                    buttons: menuActions
                 }
             ],
-            );
+        );
+
+        return resp;
+    },
+    ShowReminders: function (uid, reminders) {
+        let items = [];
+        reminders.forEach(element => {
+            items.push({
+                title: element.text,
+                subtitle: 'on: ' + new Date(element.remind_at).toLocaleString(),
+                buttons: [
+                    {
+                        type: 'postback',
+                        title: 'delete',
+                        payload: JSON.stringify({ alert: element, type: 'delete' }),
+                    },
+                ]
+            });
+        });
+
+        console.log(JSON.stringify(items));
+        let resp = this.client.sendGenericTemplate(
+            uid,
+            items,
+            {
+                tag: 'CONFIRMED_EVENT_REMINDER'
+            });
 
         return resp;
     },

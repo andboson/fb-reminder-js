@@ -5,6 +5,11 @@ var logger = require('morgan');
 var helmet = require('helmet');
 var config = require('./config.json');
 const { FBClient } = require('./facebook/fb_client');
+const { Reminders } = require('./reminders/reminder');
+const { Scheduler } = require('./reminders/scheduler');
+
+
+var { Intents } = require('./dialogflow/intents');
 
 var webhookRouter = require('./routes/webhook');
 
@@ -17,9 +22,17 @@ app.use(cookieParser());
 
 app.disable('x-powered-by');
 
+Intents.create();
+//Intents.list();
+
+
 //set menu
 let fb = FBClient.New();
 fb.SetChatProfile();
+
+// run job
+Scheduler.Start(fb, Reminders);
+
 
 var checkKey = function (req, res, next) {
     req.requestTime = Date.now();
@@ -28,6 +41,7 @@ var checkKey = function (req, res, next) {
     }
 
     req.fb = fb;
+    req.db = Reminders;
     next();
   };
   
