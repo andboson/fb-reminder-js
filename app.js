@@ -35,16 +35,17 @@ Scheduler.Start(fb, Reminders);
 
 
 var checkKey = function (req, res, next) {
-    req.requestTime = Date.now();
-    if (  req.header('X-Key') !== config.x_key ){
-      // return;
-    }
+  req.requestTime = Date.now();
+  if (req.header('X-Key') !== config.x_key) {
+    console.log('== forbidden');
+    return;
+  }
 
-    req.fb = fb;
-    req.db = Reminders;
-    next();
-  };
-  
+  req.fb = fb;
+  req.db = Reminders;
+  next();
+};
+
 app.use(checkKey);
 app.use('/', webhookRouter);
 

@@ -6,6 +6,8 @@
 
 import `reminder.zip` in dialog flow and setup fulfillemnt
 
+setup db with `db.sql`
+
 ### setup config
 
 minimal `config.json` content:

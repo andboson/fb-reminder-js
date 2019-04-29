@@ -7,4 +7,4 @@ create table reminders(
     snoozed     boolean      default false
 );
 
-create index uid_time at reminders(user_id, remind_at, snoozed);
+create index uid_time on reminders(user_id, remind_at, snoozed);
