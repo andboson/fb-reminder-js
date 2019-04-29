@@ -37,7 +37,7 @@ let FBClient = {
             [
                 {
                     title: 'Confirm save reminder',
-                    subtitle: `Time: ${new Date(reminder.time).toLocaleString()} \n Text: ${reminder.text}`,
+                    subtitle: `Time: ${reminder.remind_original} \n Text: ${reminder.text}`,
                     buttons: [
                         {
                             type: 'postback',
@@ -62,7 +62,7 @@ let FBClient = {
         return resp;
     },
     ReminderAlert: function (uid, reminder) {
-        let btns = [
+        let buttons = [
             {
                 type: 'postback',
                 title: 'confirm',
@@ -91,7 +91,7 @@ let FBClient = {
                 {
                     title: reminder.text,
                     subtitle: 'You have an alert for your reminder!',
-                    buttons: btns,
+                    buttons: buttons,
                 }
             ],
             {
@@ -143,7 +143,7 @@ let FBClient = {
         reminders.forEach(element => {
             items.push({
                 title: element.text,
-                subtitle: 'on: ' + new Date(element.remind_at).toLocaleString(),
+                subtitle: 'on: ' + remind_original,
                 buttons: [
                     {
                         type: 'postback',
@@ -161,6 +161,13 @@ let FBClient = {
             {
                 tag: 'CONFIRMED_EVENT_REMINDER'
             });
+
+        return resp;
+    },
+    GetUserProfile: function (uid) {  
+        let resp = this.client.getUserProfile(
+            uid,
+            ['id','timezone']);
 
         return resp;
     },

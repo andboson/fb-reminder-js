@@ -10,8 +10,7 @@ let Client = {
     intentMap.set('Default Welcome Intent', welcome);
     intentMap.set('Default Fallback Intent', fallback);
     intentMap.set('reminder_create', remind);
-    intentMap.set('reminder_create - set time - set text', remindCreate);
-    // intentMap.set('reminder_saved', remindCreateComplete);
+    intentMap.set('reminder_create_set_text', remindCreate);
     intentMap.set('reminder_action', remindActions);
     intentMap.set('show_today', showToday);
     intentMap.set('delete_all', deleteAll);
@@ -42,15 +41,32 @@ exports.Client = exports.default = Client
 function welcome(agent) {
   agent.add(`Welcome to Express.JS reminder!`);
 
+  let uid = agent.originalRequest.payload.data.sender.id;
+  agent.fb.GetUserProfile(uid).
+    then(user => {
+      agent.db.CreateUser(uid, user);
+    }).
+    catch(error => {
+      console.log('== user profile error', error);
+    });
+
   console.log(agent.originalRequest.payload.data.sender);
 }
 
 
 function fallback(agent) {
-  console.log('--0', agent.query);
-  console.log('--2', agent.originalRequest);
-  console.log('--3', JSON.stringify(agent.context));
+  console.log('---fallback', agent.query);
+  console.log('---ctx:', JSON.stringify(agent.context));
 
+  let fbId = agent.originalRequest.payload.data.sender.id;
+
+  // check actions
+  if (agent.query.indexOf('alert') !== -1) {
+    console.log('--alert exists--', agent.query);
+    return remindActions(agent);
+  }
+
+  // cancel 
   if (agent.query == 'cancel') {
     agent.add(`ok`);
     return;
@@ -64,10 +80,18 @@ function fallback(agent) {
   // catch enter time error
   let ctx = agent.context.get('reminder_create-followup');
   if (ctx !== undefined) {
+    console.log('--time err--', agent.query);
     agent.setFollowupEvent('reminder_create - set time');
     agent.context.set({ 'name': 'reminder_create-followup', 'lifespan': 1 })
     agent.add('');
     return;
+  }
+
+  // catch intent err
+  ctx = agent.context.get('reminder_create-settime-followup');
+  if (ctx != undefined) {
+    console.log('--catch create--', agent.query);
+    return remindCreate(agent);
   }
 
   agent.add(`I'm sorry, can you try again?`);
@@ -80,16 +104,31 @@ function remind(agent) {
 }
 
 function remindCreate(agent) {
+  console.log('--cre--', agent.query);
+
   let text = agent.query;
   let paramTime = '';
+  let remind_original = '';
 
   let ctx = agent.context.get('reminder_create-settime-followup');
+  console.log('0000', JSON.stringify(ctx));
   try {
-    paramTime = ctx.parameters.time;
+    let date = ctx.parameters.date_time;
+    if (date == 'today') {
+      date = new Date();
+    } else {
+      date = new Date(date);
+    }
+    paramTime = new Date(ctx.parameters.time);
+    paramTime.setDate(date.getDate());
+
+    let pos = ctx.parameters.time.search(/\+\d{2}/gm);
+    let off = parseInt(ctx.parameters.time.substr(pos,3));
+    remind_original = new Date(new Date(paramTime).setHours(paramTime.getHours() + off));
   } catch (e) {
     console.log('\n incorrect time', e, ctx.parameters);
     agent.add('Cannot get time');
-    agent.setFollowupEvent('reminder_create - set time - set text');
+    agent.setFollowupEvent('reminder_create_set_text');
     agent.context.set({ 'name': 'reminder_create-settime-followup', 'lifespan': 1 })
 
     return;
@@ -99,28 +138,37 @@ function remindCreate(agent) {
 
   // send confirm dialog
   agent.context.set({ 'name': 'done', 'lifespan': 1, 'parameters': { 'text': text, 'time': paramTime, 'facebook_sender_id': fbId } })
-  agent.fb.ReminderCreateConfirm(fbId, { text: text, time: paramTime });
+  agent.fb.ReminderCreateConfirm(fbId, { text: text, time: paramTime, remind_original: remind_original.toLocaleString() });
   agent.add('choose');
 }
 
 function remindActions(agent) {
+  let uid = agent.originalRequest.payload.data.sender.id;
+
+  console.log('\n --act--', agent.query, uid);
+
   let query = JSON.parse(agent.query);
 
   // save reminder to db
   if (query.type == 'save') {
-    let params = agent.context.get('done').parameters;
+    let text = query.alert.text;
+    let time = query.alert.time;
+    let remind_original = query.remind_original;
+
     let reminder = {
-      text: params.text,
-      time: params.time,
-      user_id: params.facebook_sender_id
+      text: text,
+      time: time,
+      user_id: uid,
+      remind_original: remind_original,
     }
 
     agent.db.Create(reminder);
+
   }
 
   // delete reminder
   if (query.type == 'delete' || query.type == 'confirm') {
-    agent.db.DeleteByID(query.alert.id);
+    agent.db.DeleteByID(query.alert.id, uid);
   }
 
   // snooze reminder
